@@ -1,9 +1,10 @@
 import React from "react";
 import TaskBoard from "../components/tasks/TaskBoard";
+import Chat from "../components/chat/Chat";
 
 function Home() {
   return (
-    <div className="p-12">
+    <div className="p-12 relative">
       <div className="w-full flex flex-col items-center justify-center">
         <h1 className="text-4xl font-bold mb-4">Agent Task!</h1>
         <h2 className="text-xl font-bold">
@@ -13,6 +14,10 @@ function Home() {
 
       <div className="w-full mt-12">
         <TaskBoard />
+      </div>
+
+      <div className="fixed right-10 bottom-10">
+        <Chat />
       </div>
     </div>
   );
