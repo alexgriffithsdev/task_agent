@@ -1,29 +1,44 @@
 import { Flex, Box, Heading, Text, Badge, Button } from "@chakra-ui/react";
 import Task from "./Task";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AddTaskModal from "../modals/AddTaskModal";
+import axios from "axios";
 
 const TaskBoard = () => {
   const [addTaskModalOpen, setAddTaskModalOpen] = useState(false);
-  const [tasks, setTasks] = useState([
-    {
-      id: 1,
-      title: "Task 1",
-      status: "backlog",
-    },
-    {
-      id: 2,
-      title: "Task 2",
-      status: "in-progress",
-    },
-    {
-      id: 3,
-      title: "Task 3",
-      status: "complete",
-    },
-  ]);
+  const [tasks, setTasks] = useState([]);
+
+  const getTasks = () => {
+    axios
+      .get("http://localhost:3001/tasks")
+      .then((response) => {
+        setTasks(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  useEffect(() => {
+    getTasks();
+
+    const intervalId = setInterval(() => {
+      getTasks();
+    }, 5000);
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   const onChangeStatus = (newStatus, taskId) => {
+    axios
+      .patch("http://localhost:3001/update-task", {
+        id: taskId,
+        newStatus,
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+
     const updatedTasks = tasks.map((task) => {
       if (task.id === taskId) {
         return { ...task, status: newStatus };
@@ -34,16 +49,23 @@ const TaskBoard = () => {
   };
 
   const onAddTask = ({ title, status }) => {
-    const newTasks = [
-      ...tasks,
-      {
-        id: tasks.length + 1,
+    axios
+      .post("http://localhost:3001/add-task", {
         title,
         status,
-      },
-    ];
+      })
+      .then((res) => {
+        const newTasks = [
+          ...tasks,
+          {
+            id: res.data.id,
+            title,
+            status,
+          },
+        ];
 
-    setTasks(newTasks);
+        setTasks(newTasks);
+      });
   };
 
   return (
