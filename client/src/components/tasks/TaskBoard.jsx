@@ -1,33 +1,11 @@
 import { Flex, Box, Heading, Text, Badge, Button } from "@chakra-ui/react";
 import Task from "./Task";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import AddTaskModal from "../modals/AddTaskModal";
 import axios from "axios";
 
-const TaskBoard = () => {
+const TaskBoard = ({ tasks, setTasks }) => {
   const [addTaskModalOpen, setAddTaskModalOpen] = useState(false);
-  const [tasks, setTasks] = useState([]);
-
-  const getTasks = () => {
-    axios
-      .get("http://localhost:3001/tasks")
-      .then((response) => {
-        setTasks(response.data);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  };
-
-  useEffect(() => {
-    getTasks();
-
-    const intervalId = setInterval(() => {
-      getTasks();
-    }, 5000);
-
-    return () => clearInterval(intervalId);
-  }, []);
 
   const onChangeStatus = (newStatus, taskId) => {
     axios

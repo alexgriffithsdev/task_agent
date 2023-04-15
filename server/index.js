@@ -15,9 +15,7 @@ const tasks = [];
 const messages = [];
 
 app.get("/tasks", (req, res) => {
-  console.log("get /tasks");
   try {
-    console.log(tasks);
     return res.status(200).send(tasks);
   } catch (error) {
     console.log("Error in get /tasks, error: ", error);
@@ -61,6 +59,10 @@ app.post("/add-task", (req, res) => {
   }
 });
 
+/*
+  AI super powers:
+*/
+
 const addTask = ({ title, status }) => {
   let newStatus = status;
   if (!["backlog", "in-progress", "complete"].includes(newStatus)) {
@@ -68,6 +70,21 @@ const addTask = ({ title, status }) => {
   }
 
   tasks.push({ title, status: newStatus, id: tasks.length + 1 });
+};
+
+const updateTask = ({ id, newTitle, newStatus }) => {
+  const intId = parseInt(id);
+  const taskIndex = tasks.findIndex((e) => e.id === intId);
+
+  if (taskIndex !== -1) {
+    if (newTitle) {
+      tasks[taskIndex].title = newTitle;
+    }
+
+    if (newStatus) {
+      tasks[taskIndex].status = newStatus;
+    }
+  }
 };
 
 const actionIt = new ActionIt({
@@ -88,19 +105,31 @@ actionIt.addFunction({
   },
 });
 
+actionIt.addFunction({
+  name: "updateTask",
+  description:
+    "Updates an existing task by it's integer id. The task's title and status can be updated with a newTitle and newStatus variable. The available statuses are: backlog, in-progress and complete.",
+  function: updateTask,
+  parameters: {
+    id: { type: "integer", required: true },
+    newTitle: { type: "string", required: false },
+    newStatus: { type: "string", required: false },
+  },
+  on_response: (e) => {
+    console.log(e);
+  },
+});
+
 app.post("/send-message", async (req, res) => {
   const { message } = req.body;
 
   try {
+    const taskState = `Task list: ${JSON.stringify(tasks)}`;
     const [userMessage, newAssistantMessage, response] =
-      await actionIt.handleMessagesInput(messages, message);
+      await actionIt.handleMessagesInput(messages, message, taskState);
 
     messages.push(userMessage);
     messages.push(newAssistantMessage);
-
-    console.log(newAssistantMessage);
-
-    console.log(response);
 
     return res.status(200).send(response);
   } catch (error) {

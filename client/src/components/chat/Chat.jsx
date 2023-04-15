@@ -3,11 +3,13 @@ import { CSSTransition } from "react-transition-group";
 import Message from "./Message.jsx";
 import "./chat.css";
 import axios from "axios";
+import { Button } from "@chakra-ui/react";
 
-const Chat = () => {
+const Chat = ({ getTasks }) => {
   const [showChat, setShowChat] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const handleSendMessage = () => {
     if (inputValue.trim()) {
@@ -15,7 +17,10 @@ const Chat = () => {
         ...messages,
         { id: Date.now(), type: "sent", content: inputValue },
       ];
+
       setMessages(newMessages);
+      setLoading(true);
+
       axios
         .post("http://localhost:3001/send-message", {
           message: inputValue,
@@ -25,10 +30,16 @@ const Chat = () => {
             ...newMessages,
             { id: Date.now(), type: "received", content: res.data },
           ]);
+
+          getTasks();
         })
         .catch((err) => {
           console.log(err);
+        })
+        .finally(() => {
+          setLoading(false);
         });
+
       setInputValue("");
     }
   };
@@ -68,17 +79,20 @@ const Chat = () => {
             <input
               type="text"
               value={inputValue}
+              disabled={loading}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
               className="w-full px-4 py-2 mr-4 border-2 border-blue-500 rounded-md focus:outline-none"
               placeholder="Type your message..."
             />
-            <button
+            <Button
               onClick={handleSendMessage}
-              className="bg-blue-500 text-white p-2 rounded-md focus:outline-none"
+              colorScheme="blue"
+              isLoading={loading}
+              isDisabled={loading}
             >
               Send
-            </button>
+            </Button>
           </div>
         </div>
       </CSSTransition>
